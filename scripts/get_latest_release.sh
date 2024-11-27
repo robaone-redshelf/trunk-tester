@@ -34,7 +34,9 @@ function get_latest_release() {
 }
 
 function main() {
-  echo $(get_latest_release)
+  local result
+  result=$(get_latest_release) || exit $?
+  echo "$result"
 }
 
-main
+main || exit $?
