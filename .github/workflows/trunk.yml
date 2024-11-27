@@ -51,8 +51,22 @@ jobs:
           echo "matrix=$matrixStringifiedObject" >> $GITHUB_OUTPUT
         env:
           PROJECT_ROOT: .
+      - name: Get Latest Github Relaase
+        id: get_latest_release
+        uses: actions/github-script@v4
+        with:
+          script: |
+            const { data: releases } = await github.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 1
+            });
+            return releases[0].tag_name;
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     outputs:
       matrix: ${{ steps.setmatrix.outputs.matrix }}
+      latest-release: ${{ steps.get_latest_release.outputs.result }}
   unit-tests:
     name: Unit Tests
     needs: [initialize]
@@ -112,9 +126,9 @@ jobs:
     name: Ready for testing
     needs: [unit-tests,feature-tests,initialize]
     environment: testing
-    if: |
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main'
+    # if: |
+    #   github.event_name == 'push' &&
+    #   github.ref == 'refs/heads/main'
     strategy:
       matrix: ${{ fromJson(needs.initialize.outputs.matrix) }}
     runs-on: ubuntu-latest
@@ -138,13 +152,10 @@ jobs:
             npm run deploy:testing
           fi
   tag-predicted-release:
-    needs: [deploy-to-testing]
-    if: |
-      github.event_name == 'release' &&
-      startsWith(github.ref, 'refs/tags/')
+    needs: [deploy-to-testing,initialize]
     uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@main
     with:
-      target-branch: ${{ github.event.release.target_commitish }}
+      target-branch: refs/tags/${{ needs.initialize.outputs.latest-release }}
       jira-domain: ${{ vars.JIRA_DOMAIN }}
       jira-username: ${{ vars.JIRA_USERNAME }}
       is-release: true
