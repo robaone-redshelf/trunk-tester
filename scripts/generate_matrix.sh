@@ -5,7 +5,13 @@
 
 # The script expects a list of projects as input.
 
+# Read input and validate
 PROJECTS="$(cat)"
+if [ -z "$PROJECTS" ] && [ ! -t 0 ]; then
+    echo "Error: No input provided" >&2
+    echo "Usage: echo 'project1 project2' | $0" >&2
+    exit 1
+fi
 
 # generate the json object
 MATRIX_OBJECT="{\"include\":[{\"project\":\".\"},"
