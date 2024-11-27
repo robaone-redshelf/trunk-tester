@@ -133,6 +133,17 @@ jobs:
           if [ -f "package.json" ] && [ "$(jq -r '.scripts["deploy:testing"]' package.json)" != "null" ]; then
             npm run deploy:testing
           fi
+  tag-predicted-release:
+    needs: [deploy-to-testing]
+    uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@main
+    with:
+      target-branch: '?'
+      jira-domain: ${{ vars.JIRA_DOMAIN }}
+      jira-username: ${{ vars.JIRA_USERNAME }}
+      is-release: true
+    secrets:
+      jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
+      llm-api-token: ${{ secrets.LLM_TOKEN }}
   deploy-to-production:
     name: Ready for production
     needs: [initialize]
