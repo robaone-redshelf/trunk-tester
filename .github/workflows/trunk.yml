@@ -126,9 +126,9 @@ jobs:
     name: Ready for testing
     needs: [unit-tests,feature-tests,initialize]
     environment: testing
-    # if: |
-    #   github.event_name == 'push' &&
-    #   github.ref == 'refs/heads/main'
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
     strategy:
       matrix: ${{ fromJson(needs.initialize.outputs.matrix) }}
     runs-on: ubuntu-latest
