@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+      - name: Print all github context
+        run: echo "${{ toJson(github) }}"
       - name: Cancel Previous Runs
         if: ${{ github.ref != 'refs/heads/main' }}
         uses: styfle/cancel-workflow-action@0.12.1
@@ -137,7 +139,7 @@ jobs:
     needs: [deploy-to-testing]
     uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@main
     with:
-      target-branch: '?'
+      target-branch: ${{ github.event.release.target_commitish }}
       jira-domain: ${{ vars.JIRA_DOMAIN }}
       jira-username: ${{ vars.JIRA_USERNAME }}
       is-release: true
