@@ -105,6 +105,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '22.x'
+      - name: Test the initialize latest-release output
+        run: |
+          echo "Latest release is ${{ needs.initialize.outputs.latest-release }}"
       - name: Install Dependencies
         run: |
           if [ -f "package.json" ]; then
@@ -150,7 +153,7 @@ jobs:
     needs: [deploy-to-testing,initialize]
     uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@main
     with:
-      target-branch: refs/tags/${{ needs.initialize.outputs.latest-release }}
+      target-branch: refs/tags/v${{ needs.initialize.outputs.latest-release }}
       jira-domain: ${{ vars.JIRA_DOMAIN }}
       jira-username: ${{ vars.JIRA_USERNAME }}
       is-release: true
