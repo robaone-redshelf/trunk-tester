@@ -16,4 +16,9 @@ MATRIX_OBJECT="${MATRIX_OBJECT%?}]}" # remove the last comma
 
 # print the json object
 
+# Validate and output JSON
+if ! echo "$MATRIX_OBJECT" | jq . >/dev/null 2>&1; then
+    echo "Error: Generated invalid JSON" >&2
+    exit 1
+fi
 echo "$MATRIX_OBJECT"
