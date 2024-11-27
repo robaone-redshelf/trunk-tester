@@ -151,7 +151,7 @@ jobs:
           fi
   tag-predicted-release:
     needs: [deploy-to-testing,initialize]
-    uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@main
+    uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@hotfix/v2.4.4
     with:
       target-branch: refs/tags/v${{ needs.initialize.outputs.latest-release }}
       jira-domain: ${{ vars.JIRA_DOMAIN }}
