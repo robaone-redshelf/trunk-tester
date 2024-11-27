@@ -18,7 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Print all github context
-        run: echo ${{ toJson(github) }}
+        run: echo "$ALL_GITHUB_CONTEXT"
+        env:
+          ALL_GITHUB_CONTEXT: ${{ toJson(github) }}
       - name: Cancel Previous Runs
         if: ${{ github.ref != 'refs/heads/main' }}
         uses: styfle/cancel-workflow-action@0.12.1
