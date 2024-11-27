@@ -7,11 +7,17 @@ if [ -z "$FILES" ]; then
 fi
 
 if [ "$FIND_PATH" == "" ]; then
-  FIND_PATH="$(which find)"
+  FIND_PATH="$(which find)" || {
+    echo "Error: 'find' command not found" >&2
+    exit 1
+  }
 fi
 
 if [ "$CAT_PATH" == "" ]; then
-  CAT_PATH="$(which cat)"
+  CAT_PATH="$(which cat)" || {
+    echo "Error: 'cat' command not found" >&2
+    exit 1
+  }
 fi
 
 function git_root() {
