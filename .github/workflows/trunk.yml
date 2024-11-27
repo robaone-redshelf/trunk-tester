@@ -98,7 +98,9 @@ jobs:
         working-directory: ${{ matrix.project}}
       - name: Run Feature Tests
         run: |
-          npm run test:e2e
+          if [ -f "package.json" ] && [ "$(jq -r '.scripts["test:e2e"]' package.json)" != "null" ]; then
+            npm run test:e2e
+          fi
         working-directory: ${{ matrix.project}}
   deploy-to-testing:
     name: Ready for testing
