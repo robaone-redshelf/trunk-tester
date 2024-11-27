@@ -56,18 +56,8 @@ jobs:
       - name: Get Latest Github Relaase
         id: get_latest_release
         run: |
-          latest_release=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          latest_release=$(./scripts/get_latest_release.sh)
           echo "Latest release is $latest_release"
-          if [ "$latest_release" == "null"] || [ "$latest_release" == "" ]; then
-            # get the initial commit hash
-            latest_release=$(git rev-list --max-parents=0 HEAD)
-          else
-            latest_release=refs/tags/$latest_release
-          fi
-          if [ "$latest_release" == "" ]; then
-            echo "No release found"
-            exit 1
-          fi
           echo "result=$latest_release" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
