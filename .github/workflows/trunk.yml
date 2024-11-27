@@ -17,6 +17,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Print all github context
         run: echo "$ALL_GITHUB_CONTEXT"
         env:
@@ -61,6 +63,10 @@ jobs:
             latest_release=$(git rev-list --max-parents=0 HEAD)
           else
             latest_release=refs/tags/$latest_release
+          fi
+          if [ -z "$latest_release" ]; then
+            echo "No release found"
+            exit 1
           fi
           echo "result=$latest_release" >> $GITHUB_OUTPUT
         env:
