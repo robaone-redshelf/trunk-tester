@@ -94,7 +94,9 @@ jobs:
           node-version: '22.x'
       - name: Install Dependencies
         run: |
-          npm install
+          if [ -f "package.json" ]; then
+            npm install
+          fi
         working-directory: ${{ matrix.project}}
       - name: Run Feature Tests
         run: |
