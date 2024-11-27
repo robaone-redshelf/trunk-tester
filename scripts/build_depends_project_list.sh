@@ -5,7 +5,6 @@ if [ -z "$FILES" ]; then
   echo "Error: No input received from stdin" >&2
   exit 1
 fi
-SCRIPT_DIR=$(cd $(dirname $0); pwd)
 
 if [ "$FIND_PATH" == "" ]; then
   FIND_PATH="$(which find)"
