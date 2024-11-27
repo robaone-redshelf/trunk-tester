@@ -1,0 +1,156 @@
+name: Trunk CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [created]
+
+jobs:
+  initialize:
+    name: Initialize
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cancel Previous Runs
+        if: ${{ github.ref != 'refs/heads/main' }}
+        uses: styfle/cancel-workflow-action@0.12.1
+        with:
+          access_token: ${{ github.token }}
+      - id: files
+        uses: tj-actions/changed-files@v45.0.0
+      - name: List files modified
+        id: project_list
+        shell: bash
+        run: |
+          echo ${{ steps.files.outputs.all_changed_files }} | sed -E 's/ /\n/g' > modified_files.txt
+          echo "## Modified Files"
+          cat modified_files.txt
+          cat modified_files.txt | ./scripts/parse_file_list_for_projects.sh > project_list.txt
+        env:
+          PROJECT_ROOT: .
+          IGNORE_LIST: "scripts"
+      - name: Set Dynamic Matrix
+        id: setmatrix
+        shell: bash
+        run: |
+          echo "## Project List"
+          cat project_list.txt
+          matrixStringifiedObject="$(cat project_list.txt | ./scripts/generate_matrix.sh)"
+          echo "## Matrix Object"
+          echo "$matrixStringifiedObject"
+          echo "matrix=$matrixStringifiedObject" >> $GITHUB_OUTPUT
+        env:
+          PROJECT_ROOT: .
+    outputs:
+      matrix: ${{ steps.setmatrix.outputs.matrix }}
+  unit-tests:
+    name: Unit Tests
+    needs: [initialize]
+    if: github.event_name != 'release'
+    strategy:
+      matrix: ${{ fromJson(needs.initialize.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.x'
+      - name: Install Dependencies
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+          fi
+        working-directory: ${{ matrix.project}}
+      - name: Run Unit Tests
+        run: |
+          if [ -f "package.json" ] && [ "$(jq -r '.scripts["test"]' package.json)" != "null" ]; then
+            npm run test
+          fi
+        working-directory: ${{ matrix.project}}
+
+  feature-tests:
+    name: Feature Tests
+    needs: [initialize]
+    if: github.event_name != 'release'
+    strategy:
+      matrix: ${{ fromJson(needs.initialize.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.x'
+      - name: Install Dependencies
+        run: |
+          npm install
+        working-directory: ${{ matrix.project}}
+      - name: Run Feature Tests
+        run: |
+          npm run test:e2e
+        working-directory: ${{ matrix.project}}
+  deploy-to-testing:
+    name: Ready for testing
+    needs: [unit-tests,feature-tests,initialize]
+    environment: testing
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+    strategy:
+      matrix: ${{ fromJson(needs.initialize.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.x'
+      - name: Install Dependencies
+        run: |
+          npm install
+        working-directory: ${{ matrix.project }}
+      - name: Deploy
+        run: |
+          if [ "$(jq -r '.scripts["deploy:testing"]' package.json)" != "null" ]; then
+            npm run deploy:testing
+          fi
+  deploy-to-production:
+    name: Ready for production
+    needs: [initialize]
+    environment: production
+    if: |
+      github.event_name == 'release' &&
+      github.ref == 'refs/heads/main'
+    strategy:
+      matrix: ${{ fromJson(needs.initialize.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '22.x'
+      - name: Install Dependencies
+        run: |
+          npm install
+        working-directory: ${{ matrix.project }}
+      - name: Deploy
+        run: |
+          if [ "$(jq -r '.scripts["deploy:testing"]' package.json)" != "null" ]; then
+            npm run deploy:testing
+          fi
