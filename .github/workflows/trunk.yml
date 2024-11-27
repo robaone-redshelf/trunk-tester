@@ -56,6 +56,12 @@ jobs:
         run: |
           latest_release=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
           echo "Latest release is $latest_release"
+          if [ -z "$latest_release" ]; then
+            # get the initial commit hash
+            latest_release=$(git rev-list --max-parents=0 HEAD)
+          else
+            latest_release=refs/tags/$latest_release
+          fi
           echo "result=$latest_release" >> $GITHUB_OUTPUT
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -153,7 +159,7 @@ jobs:
     needs: [deploy-to-testing,initialize]
     uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@hotfix/v2.4.4
     with:
-      target-branch: refs/tags/v${{ needs.initialize.outputs.latest-release }}
+      target-branch: ${{ needs.initialize.outputs.latest-release }}
       jira-domain: ${{ vars.JIRA_DOMAIN }}
       jira-username: ${{ vars.JIRA_USERNAME }}
       is-release: true
