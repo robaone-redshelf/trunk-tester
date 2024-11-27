@@ -137,6 +137,9 @@ jobs:
           fi
   tag-predicted-release:
     needs: [deploy-to-testing]
+    if: |
+      github.event_name == 'release' &&
+      startsWith(github.ref, 'refs/tags/')
     uses: VirdocsSoftware/github-actions/.github/workflows/tag-tickets-with-release.yml@main
     with:
       target-branch: ${{ github.event.release.target_commitish }}
