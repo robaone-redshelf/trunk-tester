@@ -130,7 +130,7 @@ jobs:
         working-directory: ${{ matrix.project }}
       - name: Deploy
         run: |
-          if [ "$(jq -r '.scripts["deploy:testing"]' package.json)" != "null" ]; then
+          if [ -f "package.json" ] && [ "$(jq -r '.scripts["deploy:testing"]' package.json)" != "null" ]; then
             npm run deploy:testing
           fi
   deploy-to-production:
@@ -159,6 +159,6 @@ jobs:
         working-directory: ${{ matrix.project }}
       - name: Deploy
         run: |
-          if [ "$(jq -r '.scripts["deploy:production"]' package.json)" != "null" ]; then
+          if [ -f "package.json" ] && [ "$(jq -r '.scripts["deploy:production"]' package.json)" != "null" ]; then
             npm run deploy:production
           fi
