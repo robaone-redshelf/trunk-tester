@@ -157,10 +157,10 @@ jobs:
     with:
       target-branch: ${{ needs.initialize.outputs.latest-release }}
       jira-domain: ${{ vars.JIRA_DOMAIN }}
-      jira-username: ${{ vars.JIRA_USERNAME }}
       is-release: true
     secrets:
       jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
+      jira-username: ${{ vars.JIRA_USERNAME }}
       llm-api-token: ${{ secrets.LLM_TOKEN }}
   deploy-to-production:
     name: Ready for production
